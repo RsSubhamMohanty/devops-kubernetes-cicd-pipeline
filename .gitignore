@@ -1,0 +1,108 @@
+# ================================
+# Python
+# ================================
+
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+
+# ================================
+# Terraform
+# ================================
+
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+
+# Keep example variables
+!terraform.tfvars.example
+
+
+# ================================
+# Kubernetes
+# ================================
+
+# Local Kubernetes configuration
+kubeconfig
+*.kubeconfig
+
+
+# ================================
+# Helm
+# ================================
+
+# Helm temporary/cache files
+.helm/
+
+
+# ================================
+# Docker
+# ================================
+
+# Docker override files
+docker-compose.override.yml
+
+
+# ================================
+# Security / Scanning
+# ================================
+
+# Local scan reports
+gitleaks-report.json
+trivy-report.json
+checkov-report.json
+sonar-report/
+
+
+# ================================
+# IDE / Editors
+# ================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+
+# ================================
+# Operating System
+# ================================
+
+.DS_Store
+Thumbs.db
+
+
+# ================================
+# Logs
+# ================================
+
+*.log
+
+
+# ================================
+# Temporary files
+# ================================
+
+*.tmp
+*.temp
