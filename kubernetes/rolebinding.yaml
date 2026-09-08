@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devsecops-app-read-config
+  namespace: devsecops-app
+  labels:
+    app.kubernetes.io/name: devsecops-app
+    app.kubernetes.io/part-of: devsecops-pipeline
+subjects:
+  - kind: ServiceAccount
+    name: devsecops-app-sa
+    namespace: devsecops-app
+roleRef:
+  kind: Role
+  name: devsecops-app-read-config
+  apiGroup: rbac.authorization.k8s.io
