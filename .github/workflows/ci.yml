@@ -1,4 +1,3 @@
-```yaml
 name: CI
 
 on:
@@ -126,5 +125,4 @@ jobs:
         with:
           context: ./app
           push: true
-          tags: ghcr.io/RsSubhamMohanty/devops-kubernetes-cicd-pipeline:${{ github.sha }}
-```
+          tags: ghcr.io/rssubhammohanty/devops-kubernetes-cicd-pipeline:${{ github.sha }}

@@ -1,0 +1,85 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up Kind
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: kind-devops-cluster
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GHCR image pull secret
+        run: |
+          kubectl create namespace devsecops-helm --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret docker-registry ghcr-secret \
+            --namespace devsecops-helm \
+            --docker-server=ghcr.io \
+            --docker-username="${{ github.actor }}" \
+            --docker-password="${{ secrets.GITHUB_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install devsecops-app-helm ./helm/devsecops-app \
+            --namespace devsecops-helm \
+            --create-namespace \
+            --set image.repository=ghcr.io/rssubhammohanty/devops-kubernetes-cicd-pipeline \
+            --set image.tag=${{ github.event.workflow_run.head_sha }} \
+            --set image.pullPolicy=Always
+
+      - name: Configure image pull secret
+        run: |
+          kubectl patch serviceaccount devsecops-app-helm-sa \
+            --namespace devsecops-helm \
+            --type merge \
+            -p '{"imagePullSecrets":[{"name":"ghcr-secret"}]}'
+
+      - name: Restart deployment with exact image
+        run: |
+          kubectl rollout restart deployment/devsecops-app-helm \
+            --namespace devsecops-helm
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/devsecops-app-helm \
+            --namespace devsecops-helm \
+            --timeout=180s
+
+          kubectl get pods --namespace devsecops-helm
+          kubectl get service --namespace devsecops-helm
