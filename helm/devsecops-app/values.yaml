@@ -1,0 +1,53 @@
+replicaCount: 2
+
+image:
+  repository: devsecops-flask-app
+  tag: "1.2"
+  pullPolicy: IfNotPresent
+
+app:
+  name: DevSecOps Flask Application
+  environment: kubernetes
+  port: 5000
+
+service:
+  type: ClusterIP
+  port: 5000
+
+secret:
+  appSecret: devsecops-local-placeholder
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+
+terminationGracePeriodSeconds: 30
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  readiness:
+    path: /ready
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
