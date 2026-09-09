@@ -126,5 +126,5 @@ jobs:
         with:
           context: ./app
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          tags: ghcr.io/RsSubhamMohanty/devops-kubernetes-cicd-pipeline:${{ github.sha }}
 ```
