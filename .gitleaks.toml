@@ -1,0 +1,8 @@
+title = "DevSecOps Gitleaks Configuration"
+
+[[rules]]
+id = "aws-access-key-id"
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+keywords = ["AKIA"]
+tags = ["aws", "credentials"]

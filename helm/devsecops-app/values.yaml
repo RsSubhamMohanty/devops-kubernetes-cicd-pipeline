@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: devsecops-flask-app
   tag: "1.2"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 app:
   name: DevSecOps Flask Application
@@ -13,9 +13,6 @@ app:
 service:
   type: ClusterIP
   port: 5000
-
-secret:
-  appSecret: devsecops-local-placeholder
 
 resources:
   requests:
@@ -43,9 +40,10 @@ probes:
 
 securityContext:
   runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
+  runAsUser: 10001
+  runAsGroup: 10001
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
   capabilities:
     drop:
       - ALL

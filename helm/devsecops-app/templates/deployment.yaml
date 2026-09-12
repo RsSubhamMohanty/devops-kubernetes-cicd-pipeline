@@ -17,6 +17,7 @@ spec:
         {{- include "devsecops-app.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "devsecops-app.fullname" . }}-sa
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
@@ -26,7 +27,11 @@ spec:
           {{- toYaml .Values.securityContext.seccompProfile | nindent 10 }}
       containers:
         - name: devsecops-app
+{{- if .Values.image.digest }}
+          image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+{{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -35,10 +40,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "devsecops-app.fullname" . }}-config
-            - secretRef:
-                name: {{ include "devsecops-app.fullname" . }}-secret
           securityContext:
             allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
             capabilities:
               {{- toYaml .Values.securityContext.capabilities | nindent 14 }}
           resources:

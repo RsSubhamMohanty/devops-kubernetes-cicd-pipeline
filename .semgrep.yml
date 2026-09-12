@@ -1,0 +1,15 @@
+rules:
+  - id: python-security-audit
+    languages:
+      - python
+    message: Review this Python code for a potential security issue.
+    severity: WARNING
+    metadata:
+      category: security
+      technology:
+        - python
+    patterns:
+      - pattern: $FUNC(...)
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: '^(eval|exec|compile)$'

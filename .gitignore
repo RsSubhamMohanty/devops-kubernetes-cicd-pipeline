@@ -106,3 +106,11 @@ Thumbs.db
 
 *.tmp
 *.temp
+# Dependency-Check generated reports
+dependency-check-report/
+
+# Local Checkov virtual environment
+.checkov-venv/
+
+# Temporary workflow backups
+.github/workflows/*.backup
