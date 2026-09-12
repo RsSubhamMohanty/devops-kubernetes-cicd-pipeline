@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 
 COPY app.py config.py ./
 
-RUN useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser
+RUN groupadd --gid 10001 appgroup && \
+    useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser
 
 USER appuser
 
