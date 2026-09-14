@@ -1,0 +1,4 @@
+aws_region     = "us-east-1"
+environment    = "local"
+s3_bucket_name = "terraform-floci-friend"
+iam_role_name  = "terraform-floci-friend-role"
