@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from config import Config
 
 app = Flask(__name__)
@@ -18,6 +19,11 @@ def health():
 @app.route("/ready")
 def ready():
     return "ready"
+
+
+@app.route("/metrics")
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 if __name__ == "__main__":
