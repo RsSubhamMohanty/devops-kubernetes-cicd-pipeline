@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS builder
+FROM python:3.10-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -9,7 +9,7 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-FROM python:3.10-slim
+FROM python:3.10-alpine
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -17,12 +17,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+RUN apk update && apk upgrade --no-cache
 COPY --from=builder /install /usr/local
+
+RUN rm -rf /usr/local/lib/python3.10/site-packages/setuptools*            /usr/local/lib/python3.10/site-packages/wheel*
 
 COPY app.py config.py ./
 
-RUN groupadd --gid 10001 appgroup && \
-    useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser
+RUN addgroup -g 10001 appgroup && \
+    adduser -D -u 10001 -G appgroup appuser
 
 USER appuser
 
