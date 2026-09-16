@@ -1,1736 +1,2242 @@
-End-to-End DevSecOps CI/CD Pipeline for Containerized Applications on Kubernetes
+# End-to-End DevSecOps CI/CD Pipeline for Containerized Applications on Kubernetes
 
 A production-style DevSecOps project that demonstrates an end-to-end CI/CD workflow for building, testing, securing, containerizing, deploying, monitoring, and troubleshooting a Python Flask application on Kubernetes.
 
 The project combines Infrastructure as Code, containerization, Kubernetes, Helm, GitHub Actions, automated security scanning, monitoring, health checks, failure testing, and deployment rollback practices.
 
-Project Overview
+---
 
-This project simulates a real-world DevOps and DevSecOps workflow from source code to a running application on Kubernetes.
+## Project Overview
 
-The objective is to build an automated and security-focused delivery pipeline where application changes move through testing, security validation, containerization, deployment, monitoring, and recovery.
+This project demonstrates an end-to-end **DevOps and DevSecOps workflow**, taking application source code through automated testing, security validation, containerization, deployment, monitoring, and recovery on Kubernetes.
 
-Application Delivery Flow
+The project combines **GitHub Actions, Docker, GHCR, Helm, Kubernetes, Terraform, Floci, Prometheus, and Grafana** to demonstrate an automated and security-focused application delivery workflow.
 
-Stage
+### Application Delivery Flow
 
-Technology / Action
-
-1
-
-Developer commits application changes
-
-2
-
-GitHub stores the source code
-
-3
-
-GitHub Actions starts the CI/CD workflow
-
-4
-
-Pytest runs automated unit tests
-
-5
-
-Gitleaks checks for exposed secrets
-
-6
-
-SonarQube checks code quality and security
-
-7
-
-Checkov scans Infrastructure as Code
-
-8
-
-Trivy scans files and configurations for vulnerabilities
-
-9
-
-Docker builds the application image
-
-10
-
-Trivy scans the container image
-
-11
-
-The image is pushed to a container registry
-
-12
-
-Helm manages the Kubernetes deployment
-
-13
-
-Kubernetes runs the application
-
-14
-
-Health checks validate application availability
-
-15
-
-Prometheus collects monitoring metrics
-
-16
-
-Grafana provides monitoring dashboards
-
-17
-
-Failure scenarios and rollback procedures are tested
-
-Infrastructure Flow
-
-Stage
-
-Component
-
-Purpose
-
-1
-
-Terraform
-
-Defines infrastructure as code
-
-2
-
-Floci
-
-Provides the local AWS-compatible development environment
-
-3
-
-AWS-compatible services
-
-Simulate required cloud infrastructure locally
-
-Important: Floci is used as a local AWS-compatible environment because this project does not use a real AWS account. AWS service compatibility will be verified before implementation, and unsupported services will be adapted and documented.
-
-Project Objectives
-
-The project is designed to demonstrate practical DevOps and DevSecOps skills, including:
-
-Source code management with Git and GitHub
-
-Automated application testing
-
-CI/CD pipeline automation
-
-Infrastructure as Code using Terraform
-
-Local AWS-compatible infrastructure using Floci
-
-Containerization with Docker
-
-Kubernetes application deployment
-
-Helm-based deployment management
-
-Kubernetes health checks
-
-Kubernetes RBAC and ServiceAccounts
-
-Secure configuration using ConfigMaps and Secrets
-
-Source-code security scanning
-
-Infrastructure security scanning
-
-Container vulnerability scanning
-
-Application and infrastructure monitoring
-
-Failure troubleshooting
-
-Deployment rollback
-
-Technical documentation
-
-Technology Stack
-
-Infrastructure
-
-Linux / WSL
-
-Terraform
-
-Floci
-
-AWS-compatible CLI
-
-Source Control
-
-Git
-
-GitHub
-
-Application
-
-Python
-
-Flask
-
-Pytest
-
-Containerization
-
-Docker
-
-Dockerfile
-
-CI/CD
-
+```text
+Developer
+    |
+    v
+ GitHub
+    |
+    v
 GitHub Actions
+    |
+    +--------------------------+
+    |                          |
+    v                          v
+Unit Tests              Security Validation
+                              |
+                    +---------+---------+---------+
+                    |         |         |         |
+                    v         v         v         v
+                 Gitleaks  SonarQube  Checkov   Trivy
+                    |         |         |         |
+                    +---------+---------+---------+
+                              |
+                              v
+                        Docker Build
+                              |
+                              v
+                    Container Registry
+                              |
+                              v
+                       Helm Deployment
+                              |
+                              v
+                         Kubernetes
+                              |
+                              v
+                        Application
+                              |
+                       +------+------+
+                       |             |
+                       v             v
+                  Prometheus     Grafana
+```
 
-Kubernetes
+### Infrastructure Flow
 
-Kubernetes
+Terraform is used to define infrastructure as code, while Floci provides an AWS-compatible local environment for infrastructure testing and demonstration without using a real AWS account.
 
-kubectl
-
-Deployments
-
-Services
-
-ConfigMaps
-
-Secrets
-
-ServiceAccounts
-
-RBAC
-
-Liveness Probes
-
-Readiness Probes
-
-Resource Requests
-
-Resource Limits
-
-Deployment
-
-Helm
-
-Security
-
-Gitleaks
-
-SonarQube
-
-Checkov
-
-Trivy
-
-Monitoring
-
-Prometheus
-
-Grafana
-
-Automation
-
-Bash
-
-YAML
-
+```text
 Terraform
+    |
+    v
+  Floci
+    |
+    v
+AWS-Compatible
+Local Infrastructure
+```
+---
 
-DevSecOps CI/CD Pipeline
+# Phase 1 — Local DevOps Environment Setup
 
-The pipeline follows a shift-left security approach by introducing automated security checks throughout the software delivery lifecycle.
+## Objective
 
-Pull Request Workflow
+The objective of Phase 1 was to prepare and validate the complete local DevOps/DevSecOps environment required for application development, containerization, Kubernetes deployment, and CI/CD automation.
 
-Stage
+## Environment Architecture
+        Windows
+        |
+        ↓
+        WSL 2 + Ubuntu
+        |
+        ↓
+        Docker Desktop
+        |
+        ↓
+        Kind Kubernetes Cluster
+        |
+        ↓
+        Floci (AWS-Compatible Local Environment)
 
-Action
 
-1
+## Tools Installed and Configured
 
-Pull Request created
+| Tool | Purpose | Status |
+|------|---------|--------|
+| WSL 2 | Linux development environment | ✅ |
+| Ubuntu | DevOps workspace | ✅ |
+| Docker Desktop | Container runtime | ✅ |
+| Terraform | Infrastructure as Code | ✅ |
+| AWS CLI | AWS-compatible communication | ✅ |
+| Floci | Local AWS-compatible environment | ✅ |
+| kubectl | Kubernetes management | ✅ |
+| Kind | Local Kubernetes cluster | ✅ |
+| Helm | Kubernetes package management | ✅ |
+| Python 3.10 | Application development | ✅ |
 
-2
+---
 
-GitHub Actions starts the workflow
+## WSL Setup
 
-3
+Configured Ubuntu inside WSL 2 for running DevOps tools such as:
 
-Source code is checked out
+- Terraform
+- AWS CLI
+- kubectl
+- Helm
+- Docker CLI
+- Python tools
 
-4
+---
 
-Application dependencies are installed
+## Docker Configuration
 
-5
+Docker Desktop was configured with WSL integration.
 
-Unit tests are executed
+Docker was validated successfully for:
 
-6
+- Building container images
+- Running containers
+- Kubernetes container runtime
 
-Gitleaks scans for exposed secrets
+---
 
-7
+## Terraform and AWS CLI Setup
 
-SonarQube performs code quality and security analysis
+Terraform was installed for Infrastructure as Code workflows.
 
-8
+AWS CLI was configured to communicate with Floci instead of real AWS.
 
-Checkov scans Terraform and IaC configurations
+Architecture:
 
-9
+        Terraform
+        |
+        ↓
+        Floci
+        |
+        ↓
+        AWS-Compatible Local Infrastructure
 
-Trivy scans application files and configurations
 
-10
+---
 
-Security gates evaluate the results
+## Floci Configuration
 
-11
+Floci was used to simulate AWS services locally without requiring a real AWS account.
 
-Pipeline passes when configured requirements are satisfied
+Validation completed:
 
-12
+- Floci endpoint connectivity
+- AWS CLI authentication
+- AWS-compatible API communication
 
-Pipeline stops when a configured security threshold is exceeded
+---
 
-Main Branch Workflow
+## Kubernetes Setup
 
-Stage
+A local Kubernetes environment was prepared using Kind.
 
-Action
+Configured:
 
-1
+- kubectl access
+- Kubernetes context
+- Cluster connectivity
+- Node verification
 
-Changes are merged into the main branch
+Existing Kubernetes workloads were preserved, and a separate namespace was planned for this project.
 
-2
+---
 
-GitHub Actions starts the deployment workflow
+## Helm Setup
 
-3
+Helm was installed for:
 
-Unit tests are executed
+- Kubernetes application packaging
+- Deployment management
+- Rollback support
 
-4
+---
 
-Security scans are executed
+## Python Environment Setup
 
-5
+Python environment was prepared for Flask application development.
 
-Docker builds the container image
+Configured:
 
-6
+- Python 3.10
+- pip
+- Python virtual environment support
 
-Trivy scans the container image
+Project dependencies will be installed inside the application virtual environment.
 
-7
+---
 
-The approved image is pushed to the container registry
+# Problems Faced and Solutions
 
-8
+| Problem | Solution |
+|---------|----------|
+| WSL distribution name mismatch | Used the correct Ubuntu distribution |
+| Docker connection issue | Enabled Docker Desktop Engine |
+| Floci not available in Ubuntu PATH | Used Windows executable path through `/mnt` |
+| Floci environment activation issue | Exported variables manually |
+| kubectl had no context | Configured Windows kubeconfig file |
+| pytest not available globally | Installed inside project environment |
 
-Helm deploys the application to Kubernetes
+---
 
-9
+# Phase 1 Result
 
-Kubernetes health checks validate the deployment
+The complete local DevOps environment was successfully prepared.
 
-10
+The system is now ready for:
 
-Deployment status is verified
+✅ Flask application development  
+✅ Docker containerization  
+✅ Kubernetes deployment  
+✅ Helm packaging  
+✅ Terraform infrastructure  
+✅ CI/CD automation
 
-Security tools will be configured as actual pipeline gates rather than being used only as manual scanning tools.
+# Phase 2 — GitHub Repository Setup
 
-Security Implementation
+## Objective
 
-The project applies DevSecOps principles by integrating security validation into the CI/CD process.
+The objective of Phase 2 was to create the GitHub repository, configure Git, prepare the DevSecOps project structure, and connect the local development environment with GitHub.
 
-Gitleaks
+This phase established the foundation for future application development, Docker, Kubernetes, Terraform, CI/CD, security scanning, and monitoring phases.
 
-Gitleaks is used to detect accidentally committed secrets and sensitive credentials.
+---
 
-The pipeline will fail when a configured secret-detection rule identifies an exposed secret.
+# Repository Setup
 
-SonarQube
+## GitHub Repository
 
-SonarQube is used for:
+     Repository: devops-kubernetes-cicd-pipeline 
 
-Source-code quality analysis
 
-Security analysis
+Purpose:
 
-Code issue detection
+The repository will contain the complete DevSecOps pipeline implementation including:
 
-Maintainability checks
+- Flask application
+- Docker containerization
+- Kubernetes deployment
+- Helm charts
+- Terraform infrastructure
+- GitHub Actions CI/CD
+- Security scanning
+- Monitoring configuration
 
-Checkov
+---
 
-Checkov is used to scan Terraform and Infrastructure as Code configurations for security and compliance issues.
+# Git Configuration
 
-Trivy
+Configured Git identity:
 
-Trivy is used for vulnerability scanning of:
+- Username
+- Email
 
-Application files
+Verified remote connection between local repository and GitHub.
 
-Container images
+Repository connection:
 
-Kubernetes configurations
+        Local Repository
+        |
+        ↓
+        GitHub
 
-Infrastructure as Code configurations
+---
 
-Security gates will be configured so that the pipeline can fail when a configured security threshold is exceeded.
+# Project Structure
 
-Kubernetes Implementation
+Created the initial DevSecOps project structure:
 
-The application will be deployed to a dedicated Kubernetes namespace.
+        devops-kubernetes-cicd-pipeline
+        │
+        ├── .github/
+        │ └── workflows/
+        │
+        ├── app/
+        │ ├── tests/
+        │ ├── app.py
+        │ ├── requirements.txt
+        │ ├── Dockerfile
+        │ └── .dockerignore
+        │
+        ├── terraform/
+        │ └── modules/
+        │
+        ├── kubernetes/
+        │
+        ├── helm/
+        │ └── devsecops-app/
+        │
+        ├── monitoring/
+        │ ├── prometheus/
+        │ └── grafana/
+        │
+        ├── security/
+        │ ├── gitleaks/
+        │ ├── sonarqube/
+        │ ├── checkov/
+        │ └── trivy/
+        │
+        ├── scripts/
+        │
+        ├── README.md
+        ├── LICENSE
+        └── .gitignore
 
-The Kubernetes implementation will include:
 
-Namespace isolation
+---
 
-Deployment
+# .gitignore Configuration
 
-Service
+Created `.gitignore` to prevent unnecessary and sensitive files from being committed.
 
-ConfigMap
+Excluded:
 
-Secret
+- Python cache files
+- Virtual environments
+- Environment files
+- Terraform state files
+- Kubernetes credentials
+- Security reports
+- IDE files
 
-ServiceAccount
+Examples:
 
-RBAC
+        .venv/
+        pycache/
+        .env
+        terraform.tfstate
+        kubeconfig
 
-Liveness probes
 
-Readiness probes
+---
 
-Resource requests
+# Documentation Setup
 
-Resource limits
+Created initial:
 
-Existing workloads in the local Kubernetes cluster will not be deleted or modified unnecessarily.
+- README.md
+- LICENSE
 
-Helm Deployment
+README included:
 
-Helm will be used to package and manage the Kubernetes application deployment.
+- Project overview
+- Technology stack
+- DevSecOps workflow
+- Future implementation phases
 
-The Helm chart will support environment-specific configuration through values files.
+---
 
-Planned Environments
+# Initial Git Commit
 
-Development
+Created the first project commit:
 
-Production
+     - chore: initialize DevSecOps project structure
 
-Helm will also be used to maintain deployment history and demonstrate rollback procedures.
 
-Infrastructure as Code
+All initial project files were successfully committed.
 
-Terraform will be used to define infrastructure configuration.
+---
 
-Floci is being used as an AWS-compatible local development environment because this project does not use a real AWS account.
+# GitHub Authentication Setup
 
-AWS-related components will be checked against Floci's supported capabilities before implementation.
+## Problem
 
-Where a service is unsupported or partially supported, the project will document and apply an appropriate adaptation.
+Initial push failed because GitHub no longer supports password authentication for Git operations.
 
-The design will remain transferable to real AWS infrastructure where practical.
+## Solution
 
-Phase 7 — Terraform + Floci
+Configured GitHub Personal Access Token (PAT).
 
-Objective
+Required permissions:
 
-Phase 7 implements the Infrastructure as Code layer using Terraform and Floci.
+- Repository contents → Read and write
+- Workflows → Read and write
 
-Terraform is used to define and manage AWS-compatible infrastructure as code.
+Workflow permission was required because the repository contains:
+ 
+   - .github/workflows/
 
-Floci provides the local AWS-compatible development environment used by this project instead of a real AWS account.
 
-The objective of this phase is to demonstrate:
+---
 
-Infrastructure as Code
+# Repository Push
 
-Terraform provider configuration
+Successfully pushed the project to GitHub.
 
-Terraform variables
+Final verification:
 
-Reusable Terraform modules
+  - Branch: main
 
-Infrastructure state management
+Status:
 
-Infrastructure lifecycle management
+  - Working tree clean
+  - Repository synchronized with origin/main
 
-Security scanning with Checkov
 
-AWS-compatible local infrastructure testing
+---
 
-Infrastructure verification using AWS-compatible CLI commands
+# Problems Faced and Solutions
 
-Terraform plan and apply validation
+| Problem | Solution |
+|---------|----------|
+| Empty repository after cloning | Created project files locally and pushed them |
+| Incorrect upstream branch | Removed old upstream configuration |
+| GitHub password authentication failed | Used Personal Access Token |
+| Workflow push rejected | Added workflow permission to PAT |
+| Empty folders not appearing in Git | Added required files/placeholders |
 
-Idempotency verification
+---
 
-Safe infrastructure cleanup procedures
+# Phase 2 Result
 
+GitHub repository setup was completed successfully.
 
-Phase 7 Architecture
+Completed:
 
-The infrastructure workflow is:
+✅ Repository created  
+✅ Git configured  
+✅ Project structure created  
+✅ README and LICENSE added  
+✅ .gitignore configured  
+✅ Initial commit created  
+✅ GitHub authentication configured  
+✅ Project pushed successfully  
 
-Terraform
-    ↓
-AWS Provider
-    ↓
-Floci
-    ↓
-AWS-compatible Local Infrastructure
-    ├── S3
-    │   ├── Versioning
-    │   ├── Lifecycle Configuration
-    │   └── Public Access Blocking
-    │
-    └── IAM
-        └── IAM Role
+The repository is now ready for application development and DevSecOps implementation.
 
-Floci is not being presented as production AWS infrastructure.
+---
 
-The purpose of Floci is to provide an AWS-compatible local development environment where Terraform workflows can be tested without using a real AWS account.
+# Phase 3 — Application Development & Containerization
 
+## Objective
 
-Why Terraform
+The objective of Phase 3 was to develop a production-ready Flask application, add configuration management, implement automated testing, and containerize the application using Docker.
 
-Terraform provides declarative Infrastructure as Code.
+The main goals were:
 
-Instead of manually creating cloud resources, the desired infrastructure is defined in Terraform configuration files.
+- Build a backend application
+- Add health and readiness endpoints
+- Support environment-based configuration
+- Implement automated testing
+- Create a production Docker image
+- Run and verify the containerized application
 
-Terraform then compares the configuration with its state and the infrastructure environment and determines the required changes.
+---
 
-The main Terraform lifecycle used in this phase is:
+# Application Development
 
-terraform init
-    ↓
-terraform fmt
-    ↓
-terraform validate
-    ↓
-terraform plan
-    ↓
-terraform apply
-    ↓
-Infrastructure verification
-    ↓
-terraform plan
-    ↓
-No changes
+## Flask Application
 
+A Flask-based backend application was created.
 
-Why Floci
+Application structure:
 
-This project does not use a real AWS account.
+        app/
+        │
+        ├── app.py
+        ├── config.py
+        ├── requirements.txt
+        ├── Dockerfile
+        ├── .dockerignore
+        │
+        └── tests/
+        ├── test_app.py
+        └── conftest.py
 
-Floci provides an AWS-compatible local environment that allows AWS-related Terraform workflows to be demonstrated locally.
 
-The project therefore uses:
+---
 
-Terraform → Floci → AWS-compatible Local Infrastructure
+## Application Endpoints
 
-The project does not claim that Floci is equivalent to production AWS.
+The application provides the following endpoints:
 
-AWS service compatibility is checked before implementation, and unsupported or partially supported functionality is documented rather than hidden.
+| Endpoint | Purpose |
+|----------|---------|
+| `/` | Verify application availability |
+| `/health` | Health check endpoint |
+| `/ready` | Readiness check endpoint |
 
+Example responses:
 
-Terraform Provider Configuration
+  - GET /
 
-The Terraform AWS provider is configured to communicate with the local Floci endpoint.
+    - DevSecOps Flask Application is running
 
-The project uses the HashiCorp AWS provider with the 6.x provider series.
+  - GET /health
 
-The configured AWS-compatible environment uses:
+    - healthy
 
-Region: us-east-1
+  - GET /ready
 
-Access key: test
+    - ready
 
-Secret key: test
 
-Floci endpoint: http://127.0.0.1:4566
+---
 
-The provider disables AWS-specific validation and metadata checks that are unnecessary for the local Floci environment.
+# Configuration Management
 
-S3 path-style addressing is enabled because it is required for reliable local S3 compatibility.
+Application configuration was separated from the source code using environment variables.
 
-The Terraform provider endpoints used by this phase are:
+Created:
 
-S3 → http://127.0.0.1:4566
+  - config.py
 
-IAM → http://127.0.0.1:4566
 
+Supported configurations:
 
-Terraform Version and Provider Locking
+- Application name
+- Environment
+- Port
 
-Terraform requires version 1.6.0 or newer.
+Example:
 
-The AWS provider is constrained to the 6.x series.
+  - APP_NAME
+  - APP_ENV
+  - PORT
 
-Terraform provider dependency information is stored in:
 
-terraform/.terraform.lock.hcl
+Benefits:
 
-The lock file is retained so provider dependency resolution remains reproducible.
+- Configuration can change without modifying code
+- Supports different environments
+- Follows production deployment practices
 
-The Terraform and AWS provider versions were tested against the local Floci environment before the final implementation was selected.
+---
 
+# Python Environment Setup
 
-Terraform Variables
+  - Created an isolated Python virtual environment:
 
-The root Terraform configuration defines the following variables:
+    - app/.venv
 
-aws_region
 
-environment
+  - Configured:
 
-s3_bucket_name
+    - Python 3.10
+    - pip
+    - Project dependencies
 
-iam_role_name
+  - Dependencies were managed using:
 
-The variables allow resource names and environment information to be supplied without hard-coding the values throughout the module configuration.
+    - requirements.txt
 
-The project-specific values are stored in:
+  - Main dependencies:
+    
+     - Flask
+     - gunicorn
 
-terraform/terraform.tfvars
 
-An example configuration is provided in:
+---
 
-terraform/terraform.tfvars.example
+# Automated Testing
 
+## Pytest Implementation
 
-Terraform Module Architecture
+Automated tests were added to verify application functionality.
 
-The Terraform configuration uses reusable modules where they provide a clear separation of responsibility.
+Created:
+   
+   - tests/test_app.py
 
-Current modules:
 
-terraform/modules/storage/
+Test cases:
 
-terraform/modules/iam/
+| Test | Verification |
+|------|-------------|
+| Home Endpoint | `/` returns 200 response |
+| Health Endpoint | `/health` returns healthy |
+| Ready Endpoint | `/ready` returns ready |
 
+---
 
-Storage Module
+## Pytest Import Issue
 
-The storage module manages the Terraform-controlled S3 bucket.
+Problem:
 
-The module contains:
+Pytest was unable to locate the Flask application module.
 
-terraform/modules/storage/main.tf
+Solution:
 
-terraform/modules/storage/variables.tf
+Created:
 
-terraform/modules/storage/outputs.tf
+  - tests/conftest.py
 
 
-IAM Module
+Configured Python path loading.
 
-The IAM module manages the Terraform-controlled IAM role.
+Result:
 
-The module contains:
+  - 3 tests passed
 
-terraform/modules/iam/main.tf
 
-terraform/modules/iam/variables.tf
+---
 
-terraform/modules/iam/outputs.tf
+# Docker Containerization
 
+## Dockerfile Creation
 
-S3 Infrastructure
+The Flask application was containerized using Docker.
 
-The storage module creates one Terraform-managed S3 bucket.
+Dockerfile features:
 
-The bucket name is supplied through the root variable:
+- Lightweight Python base image
+- Production dependencies
+- Environment configuration
+- Non-root user execution
+- Gunicorn production server
 
-s3_bucket_name
+Base image:
 
-The bucket is configured with security and lifecycle controls.
+  - python:3.10-slim
 
 
-S3 Versioning
+---
 
-S3 versioning is enabled.
+## Docker Security Practices
 
-Versioning allows multiple versions of objects to be retained rather than immediately replacing previous object versions.
+Implemented:
 
-Terraform manages this through the S3 bucket versioning resource.
+### Non-root User
 
+Created:
 
-S3 Public Access Blocking
+  - appuser
 
-All four S3 public-access-block controls are enabled:
 
-BlockPublicAcls
+The application runs without root privileges.
 
-IgnorePublicAcls
+Benefits:
 
-BlockPublicPolicy
+- Reduced container security risk
+- Follows container security best practices
 
-RestrictPublicBuckets
+---
 
-This prevents the Terraform-managed bucket from being configured for public access through common S3 public-access mechanisms.
+### Production Server
 
+Instead of Flask development server, Gunicorn was used.
 
-S3 Lifecycle Configuration
+Gunicorn provides:
 
-A lifecycle configuration is managed by Terraform.
+- Production WSGI server
+- Better reliability
+- Worker support
 
-The current lifecycle rule:
+---
 
-Rule ID: terraform-managed-lifecycle-test
+# Docker Ignore Configuration
 
-Status: Enabled
+  - Created:
 
-Object expiration: 365 days
+    - .dockerignore
 
-Incomplete multipart upload cleanup: 7 days
+  - Excluded unnecessary files:
 
-The lifecycle rule is intentionally managed without a non-empty object prefix because the Checkov lifecycle validation rejected the earlier filtered configuration.
+    - .venv/
+    - pycache/
+    - .pytest_cache/
+    - .git/
+    - .env
+    - tests/
 
-The final configuration therefore uses an unfiltered lifecycle rule.
+  - Benefits:
 
+    - Smaller image size
+    - Faster builds
+    - Prevents unnecessary files from entering the image
 
-IAM Infrastructure
+---
 
-The IAM module creates one Terraform-managed IAM role.
+# Docker Image Build
 
-The role name is supplied through:
+Created Docker image:
 
-iam_role_name
+  - devops-kubernetes-cicd-pipeline:test
 
-The role contains an assume-role trust policy for the local Floci AWS-compatible account.
 
-The current local account identifier is:
+Build command:
 
-000000000000
+        docker build -t devops-kubernetes-cicd-pipeline:test .  
 
-The resulting role ARN follows the local AWS-compatible format:
+Image was created successfully.
 
-arn:aws:iam::000000000000:role/<role-name>
+## Container Deployment
 
-The IAM trust configuration is documented as a local Floci implementation detail and is not presented as a production IAM trust design.
+The Docker image was run as a container.
 
+  - Container configuration:
+       
+       - APP_NAME=DevSecOps Docker App
+       - APP_ENV=production
+       - PORT=5000
 
-Terraform State
+  - Application was exposed on:
 
-Terraform state is maintained in the Terraform working directory.
+       - 5000:5000
 
-The current state files are:
+## Container Verification
 
-terraform/terraform.tfstate
+The application was tested successfully inside the running container.
 
-terraform/terraform.tfstate.backup
+  - Verified endpoints:
 
-The state records the infrastructure Terraform manages.
+        /
+        /health
+        /ready
 
-The final Terraform state contains five managed resources:
+  - Result:
 
-module.iam.aws_iam_role.this
+    - ✅ Application running successfully inside Docker
 
-module.storage.aws_s3_bucket.this
+## Phase 3 Result
 
-module.storage.aws_s3_bucket_lifecycle_configuration.this
+Application development and containerization were completed successfully.
 
-module.storage.aws_s3_bucket_public_access_block.this
+  - Completed:
 
-module.storage.aws_s3_bucket_versioning.this
+        ✅ Flask application created
+        ✅ Configuration management implemented
+        ✅ Environment variables supported
+        ✅ Pytest automation added
+        ✅ Docker image created
+        ✅ Container deployed
+        ✅ Application endpoints verified
+        ✅ Production Gunicorn server configured
+        ✅ Non-root container execution implemented
 
-Terraform state must not be treated as disposable information while resources are being managed because Terraform uses it to determine the relationship between configuration and infrastructure.
+# Phase 4 — Container Security & Image Hardening
 
+## Objective
 
-Terraform Lifecycle Verification
+The objective of Phase 4 was to improve the security of the Dockerized Flask application by reviewing the container configuration, applying security best practices, scanning the image for vulnerabilities, and creating a hardened production-ready image.
 
-The following Terraform workflow was completed successfully:
+The main goals were:
 
-terraform fmt -recursive
+- Review Docker image security
+- Run container as non-root user
+- Reduce unnecessary runtime dependencies
+- Perform vulnerability scanning using Trivy
+- Analyze and fix application-level vulnerabilities
+- Rebuild and verify the final image
 
-terraform init
+---
 
-terraform validate
+# Docker Security Improvements
 
-terraform plan
+The Dockerfile was reviewed and improved with security-focused practices.
 
-terraform apply
+Implemented:
 
-After the infrastructure was applied, Terraform was run again with:
+- Lightweight base image
+- Non-root container execution
+- Minimal runtime files
+- Removed unnecessary build tools
+- Production Gunicorn server
+- Vulnerability scanning
 
-terraform plan
+---
 
-The resulting plan reported:
+# Docker Image Hardening
 
-No changes. Your infrastructure matches the configuration.
+## Base Image
 
-This confirms Terraform idempotency for the current configuration.
+  - Used:
+    
+    - python:3.10-slim
 
-Idempotency means that repeatedly applying the same configuration does not continuously create or modify resources when the infrastructure already matches the desired state.
+  - Benefits:
 
+    - Smaller image size
+    - Fewer unnecessary packages
+    - Reduced attack surface
 
-Floci Compatibility Testing
+--- 
 
-Before the final Terraform implementation was selected, Terraform-to-Floci compatibility was tested using the HashiCorp AWS provider 6.x series.
+## Non-Root Container Execution
 
-The compatibility test covered:
+  - A dedicated application user was created:
 
-Terraform initialization
+    - appuser
 
-Provider installation
 
-Terraform validation
+  - The container runs using:
 
-Terraform planning
+        ```dockerfile
+        USER appuser
 
-Terraform apply
+  - Benefits:
 
-Terraform state management
+    - Avoids running applications as root
+    - Reduces impact if the container is compromised
 
-AWS-compatible CLI verification
+## Runtime Dependency Optimization
 
-Terraform destruction
+The Docker image was optimized by removing unnecessary package-management tools after installing dependencies.
 
-Post-destruction verification
+  - Removed:
 
-Temporary S3 compatibility tests successfully demonstrated the Terraform lifecycle:
+    - pip
+    - setuptools
+    - wheel
 
-init → validate → plan → apply → verify → destroy
+  - Reason:
 
-The temporary compatibility resources were removed after testing.
+    - These tools are required during dependency installation but are not needed during application runtime.
 
+    - Removing them reduces unnecessary attack surface. 
 
-AWS-Compatible CLI Verification
+## Docker Image Versions
 
-The resulting Floci infrastructure was independently verified using AWS-compatible CLI commands.
+Different image versions were created during the hardening process:
 
-The verification confirmed:
+              Image	                     Purpose
+        devsecops-flask-app:1.0	    Initial Docker image
+        devsecops-flask-app:1.1	    Image after removing unnecessary runtime tools
+        devsecops-flask-app:1.2	    Final rebuilt and verified image       
 
-The expected S3 bucket exists.
+## Trivy Vulnerability Scanning
 
-The expected IAM role exists.
+Trivy was used to scan Docker images for security vulnerabilities.
 
-S3 versioning is enabled.
+  - Scan command:
 
-S3 public-access blocking is enabled.
+    - trivy image devsecops-flask-app:1.2
 
-The S3 lifecycle configuration exists and is enabled.
+  - The scanning process helped identify vulnerabilities in:
 
-The IAM role ARN matches the Terraform output.
+    - Python dependencies
+    - Operating system packages
+    - Base image components
 
-The infrastructure returned by the CLI matches the Terraform-managed configuration.
+## Vulnerability Analysis
 
+  - Initial findings included vulnerabilities related to:
 
-Checkov Security Scanning
+    - pip
+    - setuptools
+    - wheel
+    - Python packages
 
-Checkov is used to scan the Terraform Infrastructure as Code configuration for security and compliance issues.
+  - Solution:
 
-The final Checkov configuration is stored in:
+    - Removed unnecessary Python package-management tools from the final runtime image.
 
-terraform/.checkov.yaml
+  - Result:
 
-The configured Checkov result is:
+    - Python dependency vulnerabilities: 0
 
-17 passed
 
-0 failed
+## Base Image Refresh
 
-5 intentionally skipped
+  - The Python base image was refreshed:
 
+     - docker pull python:3.10-slim
 
-Deliberate Checkov Exceptions
+  - The application image was rebuilt:
 
-Five Checkov checks are intentionally excluded from the local Floci Terraform scan.
+     - devsecops-flask-app:1.2
 
-They are documented rather than suppressed without explanation.
+  - The refreshed image was scanned again.
 
-CKV_AWS_61
+## OS-Level Vulnerability Handling
 
-This check concerns IAM assume-role trust configuration.
+After hardening, remaining Trivy findings were mainly related to Debian OS/base-image packages.
 
-The current implementation uses the local Floci account/root principal required by the deliberately simple local IAM role design.
+  - Important decision:
 
-Changing the trust policy solely to satisfy the Checkov pattern would introduce an artificial production-style principal that is not required by this local infrastructure.
+    - The project did not blindly remove required system packages only to reduce the vulnerability count.
 
-The exception is therefore documented as a deliberate local-environment design decision.
+  - Reason:
 
+    - Some packages are required by the operating system
+    - Removing them could break the application
+    - Security fixes must be evaluated properly
 
-CKV2_AWS_62
+## APT Diagnostic Check
 
-This check requires S3 event notifications.
+A temporary root container was used only for checking available package updates.
 
-S3 event notifications are not required by the current project infrastructure.
+  - The final application container remained:
 
-A temporary Terraform notification compatibility test was performed successfully against Floci, including creation and verification of the notification configuration.
+     - appuser (non-root)
 
-The feature was not added to the actual project infrastructure because there is no application requirement for S3 event notifications.
+       No permanent root access was added.
 
+  - Result:
 
-CKV_AWS_18
+    - No additional Debian package upgrades were available from the configured repositories during verification.
 
-This check requires S3 access logging.
+## Final Container Verification
 
-Current Floci compatibility documentation identifies S3 access logging as not implemented.
+  - The final image:
 
-Therefore, enabling this feature in the project would not represent a reliable current Floci capability.
+     - devsecops-flask-app:1.2
 
-The check is documented as a Floci compatibility limitation.
+       was tested successfully.
 
+  - Verified:
 
-CKV_AWS_144
+        - Container starts correctly
+        - Application runs as appuser
+        - / endpoint works
+        - /health endpoint works
+        - /ready endpoint works    
 
-This check requires S3 cross-region replication.
+## Phase 4 Security Improvements
 
-Cross-region replication is not required by the current local infrastructure design.
+        Implemented:
 
-Floci exposes S3 replication configuration operations, but current Floci documentation states that replication is configuration-only and does not actually replicate objects.
+        ✅ Lightweight Python slim image
+        ✅ Non-root container execution
+        ✅ Removed unnecessary runtime tools
+        ✅ Used Gunicorn production server
+        ✅ Optimized Docker build context
+        ✅ Added Trivy vulnerability scanning
+        ✅ Refreshed base image
+        ✅ Verified final container security
 
-The project therefore does not add artificial replication infrastructure merely to satisfy the Checkov rule.
 
+# Phase 5 — Kubernetes Deployment & Runtime Security
 
-CKV_AWS_145
+## Objective
 
-This check requires S3 KMS encryption.
+The objective of Phase 5 was to deploy the hardened Flask Docker image to a local Kubernetes cluster using Kind and apply basic Kubernetes security, configuration, networking, and health-check practices.
 
-The current project does not require a KMS key for its local infrastructure.
+---
 
-The Floci environment currently has no KMS keys or aliases configured for this project.
+## Kubernetes Environment
 
-The project therefore does not create artificial KMS infrastructure solely to make the Checkov scan report zero skipped checks.
+  - Created a dedicated Kind cluster:
 
+        ```text
+        Cluster: kind-devops-cluster
+        Kubernetes: v1.34.0
+        ```
 
-Checkov Configuration
+  - The existing Docker Desktop Kubernetes environment was kept separate from this project.
 
-The five deliberate exceptions are maintained centrally in:
+  - The Docker image was loaded into Kind because locally built Docker images are not automatically available inside Kind nodes.
 
-terraform/.checkov.yaml
+        Docker Image
+            |
+            ↓
+        Kind Cluster
+            |
+            ↓
+        Kubernetes Deployment
 
-The configuration contains:
 
-CKV_AWS_61
+## Kubernetes Resources
 
-CKV2_AWS_62
+Created the following resources:
 
-CKV_AWS_18
+        Resource	      Purpose
+        Namespace	    Isolate the application
+        ConfigMap	    Store application configuration
+        Secret	        Store application secret
+        ServiceAccount	Dedicated application identity
+        Role	        Least-privilege permissions
+        RoleBinding	    Bind permissions to ServiceAccount
+        Deployment	    Run application replicas
+        Service	        Internal application access
 
-CKV_AWS_144
+  - Manifests:
 
-CKV_AWS_145
+        kubernetes/
+        ├── configmap.yaml
+        ├── deployment.yaml
+        ├── namespace.yaml
+        ├── role.yaml
+        ├── rolebinding.yaml
+        ├── secret.yaml
+        ├── service.yaml
+        └── serviceaccount.yaml        
 
-Running Checkov without supplying command-line skip arguments automatically uses this configuration.
+## Application Deployment
 
-This keeps the exceptions visible and reproducible instead of hiding them in individual commands.
+  - The existing image:
 
+     - devsecops-flask-app:1.2
 
-Floci Default Network Decision
+       was deployed with 2 replicas.
 
-The Floci environment already provides a default AWS-compatible network.
+  - Final state:
 
-The project therefore does not recreate:
+    - 2/2 Pods Running
+    - 0 Restarts
 
-VPC
+## Configuration
 
-Subnets
+  - Application configuration was provided through a ConfigMap:
 
-Internet Gateway
+    - APP_NAME
+    - APP_ENV
+    - PORT
 
-Route Tables
+  - A Kubernetes Secret was used for:
 
-Default Security Group
+    - APP_SECRET
 
-The project does not need separate Terraform-managed networking for the selected S3 and IAM infrastructure.
+  - The secret value was verified without exposing its contents.    
 
-Recreating an already-existing default network would add unnecessary infrastructure and increase the risk of conflicts.
+## Kubernetes Runtime Security
 
-The existing Floci network is therefore intentionally left outside the Terraform-managed resource set.
+  - The application was configured to run with:
 
+    - runAsNonRoot: true
+    - runAsUser: 1000
+    - runAsGroup: 1000
+    - allowPrivilegeEscalation: false
 
-Kubernetes and Terraform Separation
+  - Additional security controls:
 
-The project already uses a Kind Kubernetes cluster for the application deployment.
+    - Dropped all Linux capabilities
+    - RuntimeDefault seccomp profile
+    - Disabled automatic ServiceAccount token mounting
 
-Terraform is not being used to recreate or automatically manage the existing Kind cluster in this phase.
+  - The container was verified to run as UID 1000 rather than root.  
 
-This keeps responsibilities separated:
+## Resource Management
 
-Terraform → AWS-compatible infrastructure
+ - Configured resource requests:
 
-Kind/Kubernetes → Kubernetes cluster and workloads
+    - CPU:    100m
+    - Memory: 64Mi
 
-Helm → Kubernetes application packaging and release management
+ - Configured limits:
 
-GitHub Actions → CI/CD automation
+    - CPU:    250m
+    - Memory: 128Mi
 
-This avoids duplicating infrastructure responsibilities and prevents Terraform from unnecessarily modifying existing Kubernetes workloads.
+ - This prevents unrestricted resource consumption by the application.
 
+## Health Checks
 
-Errors and Problems Encountered
+ - Configured Kubernetes probes:
 
-Several compatibility and security-scanning issues were encountered during Phase 7.
+        Probe	      Endpoint	       Purpose
+        Liveness	  /health	    Checks application health
+        Readiness	  /ready	    Checks whether the Pod can receive traffic
 
-S3 Lifecycle Checkov Failure
+  - Both endpoints returned successful responses.  
 
-The initial S3 lifecycle configuration used a non-empty prefix.
+## Service
 
-Checkov reported a failure for the lifecycle configuration.
+  - Created an internal Kubernetes Service:
 
-The lifecycle rule was changed to an unfiltered rule.
+    - Name: devsecops-app
+    - Type: ClusterIP
+    - Port: 5000
 
-The final configuration passed the corresponding Checkov lifecycle check.
+  - The Service provided access to the application Pods and successfully discovered both replicas.
 
+## RBAC
 
-AWS Provider S3 Logging Validation
+Implemented least-privilege RBAC.
 
-During the temporary S3 access-logging compatibility test, the AWS provider required a target prefix.
+  - The application ServiceAccount was allowed only the required access, including:
 
-The initial configuration did not contain the required target prefix.
+    - get → devsecops-app-config
 
-The configuration was corrected by adding:
+  - Unauthorized actions such as deleting the ConfigMap or accessing another ConfigMap were denied.
 
-target_prefix = "logs/"
+## Problems Solved
 
-The temporary compatibility test then succeeded.
+            Problem	                                      Solution
+        Wrong Kubernetes context	             Created a dedicated Kind cluster
+        Kind not installed	                     Installed Kind v0.30.0
+        Local Docker image unavailable in Kind	 Loaded image using kind load docker-image
+        CreateContainerConfigError	             Verified appuser UID and configured UID/GID 1000
+        wget unavailable in minimal image	     Used Service and application endpoints for testing
+        Pod hostname testing failed	             Tested through the Kubernetes Service
+        Need least-privilege access	             Added ServiceAccount, Role and RoleBinding
 
-This was a compatibility test only and is not part of the final infrastructure configuration.
+- The CreateContainerConfigError was resolved by matching the Docker appuser identity with Kubernetes runAsUser: 1000 and runAsGroup: 1000.  
 
+## Validation
 
-Floci Resource Reset
+ - Final Kubernetes validation confirmed:
 
-The Floci environment was recreated during the Terraform work.
+        Kind Cluster              ✅
+        Namespace                 ✅
+        Deployment                ✅
+        2 Replicas                ✅
+        Pods Running              ✅
+        Service                   ✅
+        EndpointSlice             ✅
+        Application Endpoint      ✅
+        Health Endpoint           ✅
+        Readiness Endpoint        ✅
+        ConfigMap                 ✅
+        Secret                    ✅
+        RBAC                      ✅
+        Non-root UID 1000         ✅
+        Seccomp RuntimeDefault    ✅
+        Capabilities Dropped      ✅
+        Manifest Validation       ✅
 
-Terraform state still contained the previously managed resources while the newly created Floci environment no longer contained those resources.
+- The final application returned HTTP 200 for the application, health, and readiness endpoints, with both Pods running and zero restarts.
 
-Terraform correctly detected that the infrastructure had changed outside Terraform and planned the resources for recreation.
+## Git
 
-The infrastructure was then successfully recreated with:
+  - Phase 5 changes were committed locally with:
 
-5 resources added
+    - 8c5a76a feat: deploy secured Flask app to Kubernetes
 
-0 changed
+## Phase 5 Result
 
-0 destroyed
+- The hardened Flask application was successfully deployed to a two-replica Kind Kubernetes cluster with:
 
-The final Terraform plan subsequently returned:
+        Namespace isolation
+        ConfigMap and Secret configuration
+        Least-privilege RBAC
+        Non-root execution
+        Resource requests and limits
+        Seccomp
+        Dropped capabilities
+        Liveness and readiness probes
+        Internal ClusterIP Service    
+---
 
-No changes.
+## Phase 6 — CI/CD Automation with GitHub Actions
 
+## Objective
 
-AWS CLI Credential Difference
+- The objective of Phase 6 was to move from manually validated development and deployment toward automated CI and security validation using GitHub Actions.
 
-Terraform uses the credentials configured in the Terraform AWS provider.
+- The main goal was reliable Continuous Integration first, while keeping Continuous Deployment for a later phase.
 
-The AWS CLI does not automatically inherit those Terraform provider settings.
+## CI Pipeline
 
-For local Floci CLI testing, the following local test credentials were therefore exported when required:
+ - The implemented pipeline follows:
 
-AWS_ACCESS_KEY_ID=test
+        Developer Push / Pull Request
+                    ↓
+            GitHub Repository
+                    ↓
+            GitHub Actions
+                    ↓
+            Automated Pytest
+                    ↓
+            Docker Build
+                    ↓
+            Trivy Security Scan
+                    ↓
+        Kubernetes Manifest Validation
+                    ↓
+                Pass / Fail
 
-AWS_SECRET_ACCESS_KEY=test
+- The workflows were implemented under:
 
-AWS_DEFAULT_REGION=us-east-1
-
-The AWS CLI was then directed to the Floci endpoint.
-
-
-Wrong-Environment Bucket Check
-
-During verification, a bucket belonging to the other project was queried against the wrong Floci environment.
-
-The resulting NoSuchBucket response was caused by using the wrong bucket name for that environment.
-
-No infrastructure was modified or damaged.
-
-The correct project-specific bucket was subsequently verified against its corresponding environment.
-
-
-Infrastructure Verification
-
-The final Terraform and Floci verification confirmed:
-
-Terraform configuration is valid.
-
-Terraform formatting is valid.
-
-Terraform plan is idempotent.
-
-Terraform state contains five managed resources.
-
-The expected S3 bucket exists.
-
-S3 versioning is enabled.
-
-S3 public-access blocking is enabled.
-
-S3 lifecycle management is enabled.
-
-The expected IAM role exists.
-
-The IAM role ARN matches the Terraform output.
-
-Checkov reports 17 passed and 0 failed with five documented intentional exceptions.
-
-
-Safe Cleanup Procedure
-
-Terraform-managed infrastructure can be removed using:
-
-terraform destroy
-
-Before destruction, the planned changes should be reviewed carefully.
-
-The recommended workflow is:
-
-terraform plan
-
-Review the proposed changes.
-
-terraform destroy
-
-Confirm the destruction when Terraform requests approval.
-
-After destruction, verify that the Terraform-managed S3 bucket and IAM role are no longer present in Floci.
-
-The destroy operation should only be performed when the infrastructure is no longer required.
-
-The current Phase 7 infrastructure remains available until deliberate cleanup is requested.
-
-
-Phase 7 Verification Checklist
-
-Terraform
-
-✓ Terraform configuration created
-
-✓ AWS provider configured for Floci
-
-✓ Provider version constrained
-
-✓ Provider lock file generated
-
-✓ Variables implemented
-
-✓ Storage module implemented
-
-✓ IAM module implemented
-
-✓ Outputs implemented
-
-✓ Terraform state created
-
-✓ terraform fmt completed
-
-✓ terraform validate completed
-
-✓ terraform plan completed
-
-✓ terraform apply completed
-
-
-Infrastructure
-
-✓ S3 bucket created
-
-✓ S3 versioning enabled
-
-✓ S3 lifecycle configuration enabled
-
-✓ S3 incomplete multipart upload cleanup configured
-
-✓ S3 public access blocked
-
-✓ IAM role created
-
-✓ Terraform outputs verified
-
-
-Security
-
-✓ Checkov configured
-
-✓ 17 Checkov checks passing
-
-✓ Five exceptions explicitly documented
-
-✓ No artificial infrastructure added only to make Checkov green
-
-
-Compatibility
-
-✓ Terraform AWS provider tested against Floci
-
-✓ S3 Terraform lifecycle tested
-
-✓ IAM Terraform lifecycle tested
-
-✓ AWS-compatible CLI verification completed
-
-✓ Terraform idempotency verified
-
-✓ Floci-specific limitations documented
-
-
-Design
-
-✓ Existing Floci default network preserved
-
-✓ Existing Kind Kubernetes cluster preserved
-
-✓ Terraform responsibilities separated from Kubernetes responsibilities
-
-✓ Local Floci environment clearly distinguished from production AWS
-
-
-Phase 7 Status
-
-Phase 7 — Terraform + Floci
-
-Status: ✅ Complete
-
-Phase 7 successfully establishes the project's Infrastructure as Code foundation using Terraform against a local AWS-compatible Floci environment.
-
-The infrastructure is reproducible, state-managed, security-scanned, independently verified, and documented with the limitations and deliberate exceptions required by the local environment.
-
-
-Monitoring and Observability
-
-The final implementation will use Prometheus and Grafana to provide visibility into the Kubernetes environment and application.
-
-Monitoring Flow
-
-Component
-
-Responsibility
-
-Kubernetes
-
-Runs the application workloads
-
-Application
-
-Generates application activity and health information
-
-Prometheus
-
-Collects and stores metrics
-
-Grafana
-
-Provides dashboards and visualization
-
-Monitoring Areas
-
-The monitoring setup will provide visibility into:
-
-Pod availability
-
-CPU usage
-
-Memory usage
-
-Pod restarts
-
-Application availability
-
-Kubernetes health
-
-Failure Testing and Troubleshooting
-
-Real troubleshooting scenarios will be intentionally introduced and resolved as part of the project.
-
-ImagePullBackOff
-
-The project will demonstrate how to investigate an image-pull failure using:
-
-kubectl get pods
-
-kubectl describe pod
-
-CrashLoopBackOff
-
-The project will demonstrate how to investigate application startup failures using:
-
-kubectl get pods
-
-kubectl logs
-
-kubectl describe pod
-
-Trivy Security Failure
-
-The project will demonstrate a controlled security failure:
-
-Introduce a test vulnerability.
-
-Run the Trivy scan.
-
-Verify that the security gate detects the vulnerability.
-
-Fix the dependency or base image.
-
-Rebuild the container image.
-
-Run the scan again.
-
-Verify that the security check passes.
-
-Gitleaks Failure
-
-The project will demonstrate a controlled secret-detection failure:
-
-Introduce a test secret.
-
-Run the Gitleaks scan.
-
-Verify that the secret is detected.
-
-Remove or rotate the test secret.
-
-Secure the configuration.
-
-Run the pipeline again.
-
-Verify that the security check passes.
-
-Helm Rollback
-
-The project will demonstrate release management and recovery using:
-
-helm status
-
-helm history
-
-helm rollback
-
-These scenarios are included to demonstrate practical DevOps troubleshooting, incident analysis, and recovery skills.
-
-Project Structure
-
-The repository will progressively develop into the following structure:
-
-devops-kubernetes-cicd-pipeline/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── architecture/
-│   ├── architecture.png
-│   └── architecture.drawio
-├── app/
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   └── tests/
-│       └── test_app.py
-├── terraform/
-│   ├── providers.tf
-│   ├── versions.tf
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-│   ├── terraform.tfvars.example
-│   ├── .checkov.yaml
-│   ├── .terraform.lock.hcl
-│   └── modules/
-│       ├── storage/
-│       │   ├── main.tf
-│       │   ├── variables.tf
-│       │   └── outputs.tf
-│       └── iam/
-│           ├── main.tf
-│           ├── variables.tf
-│           └── outputs.tf
-├── kubernetes/
-│   ├── namespace.yaml
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── configmap.yaml
-│   ├── secret.yaml
-│   └── serviceaccount.yaml
-├── helm/
-│   └── devsecops-app/
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       ├── values-dev.yaml
-│       ├── values-prod.yaml
-│       └── templates/
-│           ├── deployment.yaml
-│           ├── service.yaml
-│           ├── configmap.yaml
-│           ├── secret.yaml
-│           ├── serviceaccount.yaml
-│           └── _helpers.tpl
-├── monitoring/
-│   ├── prometheus/
-│   └── grafana/
-├── security/
-│   ├── gitleaks/
-│   ├── sonarqube/
-│   ├── checkov/
-│   └── trivy/
-├── scripts/
-│   ├── setup.sh
-│   ├── build.sh
-│   ├── deploy.sh
-│   ├── health-check.sh
-│   └── destroy.sh
-└── .github/
-    └── workflows/
+        .github/workflows/
         ├── ci.yml
         ├── security.yml
         └── cd.yml
 
-The structure will be created progressively as each project phase is completed.
+- The existing workflow structure was reused rather than creating duplicate files.
 
-Local Development Environment
+## CI Workflow
 
-The current development environment consists of:
+## Triggers
 
-Layer
+- The CI workflow runs on:
 
-Technology
+        push:
+        branches:
+            - main
 
-Operating System
+        pull_request:
+        branches:
+            - main
 
-Windows
+- Therefore, CI executes for pushes to main and pull requests targeting main.
 
-Linux Environment
+## Automated Testing
 
-WSL Ubuntu
+        The workflow:
 
-Container Platform
+        Checks out the repository
+        Sets up Python 3.10
+        Installs application dependencies
+        Installs pytest
+        Runs the existing test suite
 
-Docker Desktop
+- Result:
 
-Kubernetes
+  - 3 tests passed
 
-Kind Kubernetes Cluster
+## Docker Build
 
-Local AWS-compatible Environment
+- The CI pipeline builds the existing application Dockerfile:
 
-Floci
+     app/Dockerfile
 
-Floci runs on Windows and is accessed from WSL Ubuntu.
+- The image is tagged using the Git commit SHA:
 
-Existing Kubernetes workloads will be preserved and the project will use a dedicated namespace.
+      devsecops-flask-app:${{ github.sha }}
 
-End-to-End Workflow
+- This provides an immutable identifier associated with the source commit instead of relying on a mutable latest tag.
 
-The complete project workflow is:
+## Trivy Security Scan
 
-Git → GitHub → GitHub Actions → Automated Tests → Security Gates → Docker → Container Registry → Helm → Kubernetes → Health Checks → Prometheus → Grafana → Failure Testing → Rollback
+Trivy was integrated into GitHub Actions for automated container vulnerability scanning.
 
-Infrastructure Workflow
+- Security policy:
 
-Terraform → Floci → AWS-compatible Local Infrastructure
+        Severity: HIGH, CRITICAL
+        ignore-unfixed: true
+        exit-code: 1
 
-Production-Style Target
+- Therefore:
 
-The project targets a production-style implementation with:
+        Fixed HIGH/CRITICAL vulnerabilities can fail CI.
+        Unfixed vulnerabilities are ignored.
+        A security-policy failure causes the workflow to fail.
 
-Infrastructure as Code
+- The successful Phase 6 run reported:
 
-Automated CI/CD
+        Debian OS packages: 0 HIGH/CRITICAL
+        Python packages:    0 HIGH/CRITICAL
 
-Security gates
+## Kubernetes Manifest Validation
 
-Container security
+Kubernetes manifests were automatically validated using Kubeconform.
 
-Kubernetes deployment
+- The project contains:
 
-Helm-based releases
+        8 Kubernetes manifests
 
-Health checks
+- Kubeconform successfully validated:
 
-Monitoring
+        8/8 resources
 
-Failure testing
+This validates Kubernetes configuration without requiring access to a live cluster.
 
-Rollback
+## Why GitHub Actions Does Not Deploy to Kind
 
-Technical documentation
+Automatic deployment from GitHub Actions to the local Kind cluster was intentionally not implemented.
 
-Documentation
+        GitHub-hosted Runner
+                ≠
+        Developer Machine
+                ↓
+        Local Kind Cluster
 
-The final project documentation will include:
+The GitHub-hosted runner cannot directly access the Kind cluster running on the local machine.
 
-Architecture documentation
+- Therefore, Phase 6 focuses on:
 
-Installation guide
+        Test
+        ↓
+        Build
+        ↓
+        Security
+        ↓
+        Kubernetes Validation
 
-CI/CD pipeline explanation
+Automatic deployment is reserved for a later CD/cloud phase.
 
-Security implementation
+- The existing file:
 
-Monitoring setup
+     .github/workflows/cd.yml
 
-Troubleshooting guide
+      was kept reserved for future Continuous Deployment.
 
-Screenshots
+## Problems Faced and Solutions
 
-Demo video
+            Problem	                                     Solution
+        Pytest unavailable in system Python	            Used the project's app/.venv
+        Docker build failed from wrong directory	    Ran the build from repository root
+        Trivy database update timed out	                Used existing DB temporarily; later normal update succeeded
+        kubectl --dry-run=client attempted API access	Replaced with Kubeconform
+        YAML lint warnings	                            Kept them as non-blocking warnings
+        Newer Trivy version notice	                    Treated as informational
+        GitHub runner could not access local Kind	    Limited Phase 6 to CI validation
 
-Resume-ready project description
+## CI Failure Behavior
 
-Project Status
+- The pipeline is designed so important failures stop CI:
 
-Current Phase: Phase 12 — Final Documentation
+        Tests Fail
+            ↓
+        CI Failed
 
-Final Project Status
+        Docker Build Fails
+            ↓
+        CI Failed
 
-Phases 0–11: Completed
-Phase 12: Final Documentation — In Progress
+        Trivy Security Policy Fails
+            ↓
+        CI Failed
 
-The end-to-end DevSecOps pipeline, security gates, Kubernetes deployment, Helm deployment, monitoring, failure testing, recovery, and rollback workflows have been implemented and verified.
+        Kubernetes Validation Fails
+            ↓
+        CI Failed
 
-Phase
+This prevents the pipeline from reporting success when an important quality or security gate fails.        
 
-Status
+## Phase 6 Result
 
-Phase 0 — Planning & Compatibility
+- Phase 6 was completed successfully.
 
-✅ Complete
+        GitHub Actions CI                  ✅
+        Automated pytest                   ✅
+        Docker build                       ✅
+        Kubernetes validation              ✅
+        Kubeconform                        ✅
+        Trivy security scan                ✅
+        HIGH/CRITICAL security gate        ✅
+        GitHub CI run                      ✅
+        GitHub Security run                ✅
+        Git commit                         ✅
+        Git push                           ✅
 
-Phase 1 — Local Environment
+- Final commit:
 
-✅ Complete
+        3ef1eff ci: add GitHub Actions CI and security workflows
 
-Phase 2 — GitHub Repository
+The main branch was synchronized with GitHub and the Phase 6 workflows were successfully running.
 
-✅ Complete
+---
 
-Phase 3 — Application
+## Phase 7 — Helm / Kubernetes Package Management
 
-✅ Complete
+## Objective
 
-Phase 4 — Docker
+The objective of Phase 7 was to convert the existing working Kubernetes deployment from static YAML manifests into a reusable and configurable Helm chart.
 
-✅ Complete
+The existing Kubernetes manifests were preserved as the reference implementation.
 
-Phase 5 — Kubernetes
+## Why Helm Was Added
 
-✅ Complete
+Before Phase 7, Kubernetes resources were managed through static YAML files.
 
-Phase 6 — Helm
+- Helm introduced:
 
-✅ Complete
+        Kubernetes packaging
+        Templating
+        Reusable configuration
+        Release management
+        Versioned upgrades
+        Rollbacks
 
-Phase 7 — Terraform + Floci
+- The implemented relationship was:
 
-✅ Complete
+        values.yaml
+            ↓
+        Helm Templates
+            ↓
+        Rendered Kubernetes YAML
+            ↓
+        Kubernetes Release
 
-Phase 8 — CI/CD
+## Helm Chart
 
-✅ Complete
+- Final chart:
 
-Phase 9 — DevSecOps
+        helm/devsecops-app/
+        ├── .helmignore
+        ├── Chart.yaml
+        ├── values.yaml
+        ├── values-dev.yaml
+        ├── values-prod.yaml
+        └── templates/
+            ├── _helpers.tpl
+            ├── configmap.yaml
+            ├── deployment.yaml
+            ├── role.yaml
+            ├── rolebinding.yaml
+            ├── secret.yaml
+            ├── service.yaml
+            └── serviceaccount.yaml
 
-✅ Complete
+Namespace management was intentionally kept outside the Helm chart.        
 
-Phase 10 — Monitoring
+## Configurable Values
 
-✅ Complete
+- Helm values were used to parameterize appropriate application settings, including:
 
-Phase 11 — Failure Testing & Rollback
+        Container image
+        Image tag
+        Replica count
+        Container/service ports
+        Application environment
+        Resources
+        Health probes
+        Security configuration
 
-✅ Complete
+Security defaults were kept strong rather than unnecessarily parameterizing every field.
 
-Phase 11 validated controlled failure, Kubernetes recovery, monitoring detection, and Helm rollback.
+## Kubernetes Resources
 
-### Phase 11 Objectives
+- The Helm chart represents the existing application resources:
 
-The failure and recovery workflow followed this sequence:
+        Resource	         Helm Template
+        ConfigMap	         configmap.yaml
+        Secret	             secret.yaml
+        ServiceAccount	     serviceaccount.yaml
+        Role	             role.yaml
+        RoleBinding	         rolebinding.yaml
+        Deployment	         deployment.yaml
+        Service	             service.yaml
 
-Healthy Application
-→ Controlled Failure
-→ Failure Observed
-→ Kubernetes / Monitoring Detection
-→ Recovery / Rollback
-→ Healthy Application
+Existing security controls were preserved, including non-root execution, RBAC, resource limits, probes, dropped capabilities, disabled privilege escalation, and RuntimeDefault seccomp.
 
-### 11.1 Healthy Baseline
+## Helm Validation
 
-Before failure testing:
+- The chart was validated using:
 
-- Helm release: `devsecops-app-helm`
-- Namespace: `devsecops-helm`
-- Helm revision: `5`
-- Application image: `devsecops-flask-app:1.3`
-- Deployment replicas: `2`
-- Application Pods: `2/2 Running`
-- `/health`: `healthy`
-- `/ready`: `ready`
-- Prometheus target: `up = 1`
-- Grafana dashboard: `DevSecOps Application Monitoring`
+        helm lint
+                ↓
+            PASS
 
-### 11.2 Kubernetes Pod Failure Test
+        helm template
+                ↓
+            PASS
 
-A controlled Pod deletion was attempted using the Deployment's selector.
+        Kubeconform
+                ↓
+        7/7 resources valid
 
-The application remained healthy and the Deployment maintained its desired replica count.
+No invalid resources or validation errors were reported.
 
-During this test, repeated direct deletion attempts against specific Pod names returned `NotFound` even though the Pod objects were subsequently observable. This anomaly was not treated as evidence of a Kubernetes self-healing failure, and repeated targeting of the same Pod was avoided.
+## Helm Release Lifecycle
 
-### 11.3 Controlled Bad Image Deployment
+- The Helm release was tested through the complete lifecycle:
 
-A controlled Helm upgrade was performed using the intentionally invalid image tag:
+        Install
+        ↓
+        Upgrade
+        ↓
+        Rollback
 
-`devsecops-flask-app:99.99.99-failure-test`
+- All three operations completed successfully.
 
-Result:
+  - Helm release:
 
-- Helm revision `6` was deployed.
-- The new Pod entered `ImagePullBackOff`.
-- Kubernetes Events reported `ErrImagePull` and `ImagePullBackOff`.
-- The previous healthy Pods remained available during the failed rollout.
-- The rollout did not successfully replace both healthy replicas.
+     devsecops-app-helm
 
-### 11.4 Helm Rollback
+  - Helm namespace:
 
-The failed Helm revision was rolled back.
+     devsecops-helm
 
-Rollback:
+## Application Validation
 
-`Revision 6 → Revision 5`
+- Final Helm deployment:
 
-Helm created revision `7` with the description:
+        Pods:       2/2 Running
+        Restarts:   0
+        Service:    ClusterIP
 
-`Rollback to 5`
+- Application endpoints were verified:
 
-After rollback:
+        /         → DevSecOps Flask Application is running
+        /health   → healthy
+        /ready    → ready
 
-- Image returned to `devsecops-flask-app:1.3`
-- Deployment returned to `2/2`
-- Application Pods became healthy
-- `/health` returned `healthy`
+## Security & RBAC Validation
 
-### 11.5 Monitoring Failure Detection
+- Verified that:
 
-The application Deployment was intentionally scaled from `2` replicas to `0`.
+        Non-root UID 1000          ✅
+        Privilege escalation       Disabled
+        Capabilities               Dropped
+        Seccomp                    RuntimeDefault
+        RBAC                       Least privilege
 
-Observed:
+RBAC testing confirmed required ConfigMap access was allowed while unauthorized deletion was denied.
 
-- Application Pods: `0`
-- Deployment: `0/0`
-- Service endpoints: `<none>`
-- Prometheus `up`: `0`
+## Problems / Important Decisions
 
-This demonstrated that Prometheus detected the application becoming unavailable.
+            Issue / Decision	                                       Solution
+            Existing Kubernetes deployment was already working	     Preserved the original manifests
+            Existing helm/ directory	                             Inspected before creating the chart
+            Avoid breaking the working deployment	                 Validated Helm independently
+            Namespace management	                                 Kept namespace outside the Helm chart
+            Static configuration	                                 Converted appropriate settings to Helm values
+            Security resources could be forgotten	                 Preserved ConfigMap, Secret, RBAC and ServiceAccount
+            Phase 7 could become full CD	                         Kept scope limited to Helm packaging and release lifecycle
 
-### 11.6 Monitoring Recovery
+Phase 7 was intentionally not converted into full GitHub Actions CD.    
 
-The application Deployment was restored from `0` to `2` replicas.
+## Git & GitHub
 
-Observed:
+- Final commit:
 
-- Deployment: `2/2`
-- Application Pods: `2/2 Running`
-- Service endpoints: `2`
-- Application `/health`: `healthy`
-- Prometheus `up`: `1`
+     4c1c4c4 feat: add Helm chart for DevSecOps application
 
-This demonstrated recovery of both the application and monitoring target.
+- Final state:
 
-### 11.7 Final Phase 11 State
+        Branch:        main
+        Working tree:  clean
+        Remote:        GitHub
+        CI:            PASS
+        Security Scan: PASS
 
-Final verified state:
+The Phase 7 changes were pushed successfully to GitHub, and the latest commit passed the existing CI and Security workflows.
 
-- Helm status: `deployed`
-- Helm revision: `7`
-- Image: `devsecops-flask-app:1.3`
-- Replicas: `2`
-- Application health: `healthy`
-- Prometheus target: `up = 1`
-- Grafana: operational
-- Grafana dashboard: `DevSecOps Application Monitoring`
+## Phase 7 Result
 
-### Phase 11 Result
+- Phase 7 was completed successfully.
 
-Phase 11 successfully demonstrated:
+        Static Kubernetes YAML
+                ↓
+        Reusable Helm Chart
+                ↓
+        Configurable Deployment
+                ↓
+        Helm + Kubeconform Validation
+                ↓
+        Install → Upgrade → Rollback
+                ↓
+        Secure Working Application
+                ↓
+        Committed + Pushed to GitHub
 
-- Controlled failure testing
-- Kubernetes recovery behavior
-- Controlled bad-image deployment
-- `ErrImagePull`
-- `ImagePullBackOff`
-- Helm rollback
-- Prometheus failure detection
-- Application recovery
-- Monitoring recovery
-- Final healthy state
+---
 
-Phase 12 — Final Documentation
+## Phase 8 — CI/CD Automation with GitHub Actions
 
-🔄 In Progress
+We’re starting Phase 8 now. I checked your project notes first.
 
-Key DevOps and DevSecOps Skills Demonstrated
+Phase 8 is not a rebuild of Phases 1–7. We already have working CI, Security, Kubernetes, and Helm components. The goal is to inspect the current implementation first, identify what is missing, and then extend it safely.
 
-This project demonstrates practical experience with:
+- The target Phase 8 flow is:
 
-Linux administration
+        Developer
+        ↓
+        Git Push / Pull Request
+        ↓
+        GitHub Actions
+        ↓
+        Tests
+        ↓
+        Docker Build
+        ↓
+        Kubernetes Validation
+        ↓
+        Trivy Scan
+        ↓
+        GHCR
+        ↓
+        CD
+        ↓
+        Kind
+        ↓
+        Helm
+        ↓
+        Kubernetes
+        ↓
+        Deployment Verification
 
-Git and GitHub
+Your notes specifically require that we inspect before modifying anything, especially ci.yml, security.yml, and cd.yml.
 
-CI/CD automation
+## Step 1 — Inspect existing setup
 
-GitHub Actions
+- Check Git status and latest commit.
+- Inspect:
 
-Infrastructure as Code
+        .github/workflows/ci.yml
+        .github/workflows/security.yml
+        .github/workflows/cd.yml
 
-Terraform
+- Verify existing Helm chart.
+- No changes.
 
-Docker
+## Step 2 — Analyze existing workflows
 
-Kubernetes
+- Confirm current CI stages.
+- Confirm security scanning.
+- Confirm Helm/image configuration.
+- Identify what Phase 8 needs to add.
 
-Helm
+## Step 3 — Configure CI image publishing
 
-Kubernetes RBAC
+- Update CI so that after successful validation:
 
-Application health checks
+    - Build Docker image.
+    - Tag image with commit SHA.
+    - Login to GHCR using GitHub authentication.
+    - Push image to:
+    - ghcr.io/dibyasha-sahu/kubernetes-devsecops-pipeline
+    - Never hardcode credentials.
 
-Container security
+## Step 4 — Validate CI
 
-Secret detection
+- Push the changes and verify GitHub Actions:
 
-Static code analysis
+    - Python tests ✅
+    - Docker build ✅
+    - Kubernetes manifest validation/Kubeconform ✅
+    - Trivy scan ✅
+    - GHCR image push ✅
 
-Infrastructure security
+## Step 5 — Configure CD trigger
 
-Vulnerability management
+- Create/fix cd.yml using:
 
-Prometheus
+    - workflow_run
+    - Trigger only after CI completes successfully
+    - Only for main
+    - Use the exact successful CI commit SHA.
 
-Grafana
+## Step 6 — Prepare CD environment
 
-Bash automation
+- CD workflow will:
 
-YAML
+    - Checkout exact commit.
+    - Install/setup Kind.
+    - Setup kubectl.
+    - Setup Helm.
+    - Login to GHCR.
+    - Configure ghcr-secret.
 
-Troubleshooting
+## Step 7 — Deploy with Helm
 
-Failure recovery
+- Use the existing Helm chart:
 
-Deployment rollback
+   - helm/devsecops-app
 
-Disclaimer
+- Deploy/update:
 
-This project uses Floci as an AWS-compatible local development environment rather than a real AWS account.
+   - devsecops-app-helm
 
-AWS service compatibility will be evaluated before implementation. Unsupported or partially supported services will be adapted where appropriate and clearly documented.
+Use the exact GHCR image corresponding to the CI commit.
 
-The objective is to build a technically honest project that demonstrates transferable DevOps and DevSecOps concepts applicable to real cloud environments.
+## Step 8 — Verify deployment
 
-Author
+- CD must verify:
 
-R S SUBHAM MOHNATY
+    - Helm deployment succeeds.
+    - Kubernetes rollout succeeds.
+    - Pods are Running.
+    - Service exists.
+    - Application deployment is healthy.
 
-DevOps | DevSecOps | Kubernetes | AWS | Terraform | Docker | CI/CD
+## Step 9 — Test complete pipeline
+
+- Final flow:
+
+        Git Push
+        ↓
+        GitHub Actions CI
+        ↓
+        Tests
+        ↓
+        Docker Build
+        ↓
+        Kubeconform
+        ↓
+        Trivy
+        ↓
+        Push Image → GHCR
+        ↓
+        Successful CI
+        ↓
+        CD workflow_run
+        ↓
+        Kind
+        ↓
+        GHCR Authentication
+        ↓
+        Helm Deploy
+        ↓
+        Kubernetes
+        ↓
+        Rollout Verification
+
+## Step 10 — Final Phase 8 validation
+
+- Confirm:
+
+        CI passes ✅
+        Security scan passes ✅
+        Image exists in GHCR ✅
+        CD automatically triggers ✅
+        Exact commit image is deployed ✅
+        Helm deployment succeeds ✅
+        Kubernetes rollout succeeds ✅
+        Git status clean ✅
+        Push final changes to GitHub ✅
+---
+
+## PHASE 9 — FULL DEVSECOPS SECURITY
+
+- Project: devops-kubernetes-cicd-pipeline
+- Directory: ~/devops-kubernetes-cicd-pipeline
+- GHCR: ghcr.io/RsSubhamMohanty/devops-kubernetes-cicd-pipeline
+
+Phase 9 adds layered security to the working Phase 8 CI/CD pipeline.
+
+## Step 1 — Inspect Existing CI/Security
+
+- Check:
+
+        .github/workflows/ci.yml
+        .github/workflows/security.yml
+        .github/workflows/cd.yml
+
+Also check the current Git status and existing Trivy implementation.
+
+Goal: understand what already works before modifying anything.
+
+## Step 2 — Add Semgrep
+
+- Create:
+
+     .semgrep.yml
+
+Use Semgrep for SAST — Static Application Security Testing.
+
+- Add the project-specific Python security rule for:
+
+        eval()
+        exec()
+        compile()
+
+The project notes specify the custom rule as python-security-audit with WARNING severity.
+
+Add Semgrep to CI.
+
+## Step 3 — Test Semgrep
+
+- Run:
+
+        Broad Semgrep scan
+        +
+        Custom Semgrep scan
+
+- Expected:
+
+      0 findings
+
+If the Flask 0.0.0.0 finding appears, use a targeted nosemgrep suppression, not a global Semgrep disable, because the binding is intentional for the Kubernetes architecture.
+
+## Step 4 — Add Gitleaks
+
+- Create:
+
+     .gitleaks.toml
+
+- Purpose:
+
+     Secret Detection
+
+- Detect things such as:
+
+        AWS credentials
+        API keys
+        tokens
+        passwords
+        private credentials
+
+Add Gitleaks to CI.
+
+## Step 5 — Test Gitleaks
+
+- Perform two tests:
+
+        Clean repository → PASS
+        Fake AWS-style credential → Detection
+
+Use only fake/test credentials.
+
+The project notes use the AWS Access Key pattern:
+
+       AKIA[0-9A-Z]{16}
+
+and confirm that Gitleaks successfully detected the test credential.
+
+## Step 6 — Add OWASP Dependency-Check
+
+- Purpose:
+
+       SCA — Software Composition Analysis
+
+Scan the application's Python dependencies.
+
+Add Dependency-Check to CI.
+
+- Expected result:
+
+        No vulnerabilities
+
+A feed/cache warning can occur and must be distinguished from an actual vulnerability failure.
+
+## Step 7 — Test Dependency-Check
+
+- Verify:
+
+        Dependency scan executes
+                ↓
+        Dependencies analyzed
+                ↓
+        Vulnerability result checked
+
+Do not treat a feed/cache warning automatically as a vulnerability.
+
+## Step 8 — Strengthen Existing Trivy
+
+Trivy already exists from the previous phase.
+
+Do not create another unrelated Trivy workflow.
+
+- Verify/enforce:
+
+        Docker image
+        ↓
+        Trivy
+        ↓
+        Security threshold
+        ↓
+        PASS → continue
+        FAIL → stop
+
+The purpose is to make Trivy a proper security gate rather than simply producing a report.
+
+## Step 9 — Add Checkov
+
+- Purpose:
+
+        IaC Security
+
+Scan the relevant infrastructure/configuration instead of blindly scanning every file.
+
+Target areas can include the Terraform/Kubernetes-related configuration.
+
+- Expected architecture:
+
+        Infrastructure / Configuration
+                ↓
+            Checkov
+                ↓
+        Security Findings
+                ↓
+            Security Gate
+
+## Step 10 — Test Checkov
+
+Run Checkov.
+
+Fix genuine security findings.
+
+Do not simply disable the scanner.
+
+- The final project notes include fixes involving:
+
+        image digest
+        NetworkPolicy
+        unused Secret
+        Kubernetes hardening
+
+## Step 11 — Add Kubescape
+
+- Purpose:
+
+        Kubernetes Security
+
+Scan the actual Kubernetes configuration.
+
+- Potential targets:
+
+        Kubernetes manifests
+        Helm-rendered manifests
+        Kubernetes configuration
+
+Do not blindly modify Helm templates before understanding the existing chart.
+
+## Step 12 — Test Kubescape
+
+Run Kubescape against the appropriate Kubernetes/Helm-rendered configuration.
+
+If the raw configuration produces findings, investigate them.
+
+- The final project result used the rendered Helm manifest, which achieved:
+
+        20/20
+        100%
+
+- instead of the initial raw scan result of:
+
+        18/20
+        90%
+
+## Step 13 — Kubernetes & Container Hardening
+
+Strengthen the workload security configuration.
+
+- Target:
+
+        Non-root UID/GID
+        Read-only root filesystem
+        No privilege escalation
+        Drop ALL capabilities
+        RuntimeDefault seccomp
+        Disable service-account token
+        NetworkPolicy
+
+The final configuration used UID/GID 10001 and these hardening controls.
+
+## Step 14 — Fix Runtime Compatibility
+
+Security hardening can break applications.
+
+- If:
+
+        readOnlyRootFilesystem
+
+causes Gunicorn/runtime failures:
+
+- Use:
+
+        emptyDir → /tmp
+
+and configure Gunicorn to use /tmp for temporary/control files.
+
+This preserves the security control instead of removing it.
+
+## Step 15 — Immutable Image Deployment
+
+Move deployment toward the exact image generated by CI.
+
+- Use:
+
+        GHCR image
+            ↓
+        SHA256 digest
+            ↓
+        Helm
+            ↓
+        Kubernetes
+
+This ensures deployment references an immutable image rather than relying only on a mutable tag.
+
+## Step 16 — Combine All Security Gates
+
+- Final CI concept:
+
+        Tests
+        ↓
+        Semgrep
+        ↓
+        Dependency-Check
+        ↓
+        Gitleaks
+        ↓
+        Kubernetes Validation
+        ↓
+        Checkov
+        ↓
+        Kubescape
+        ↓
+        Trivy
+        ↓
+        Docker Build
+        ↓
+        GHCR
+
+- A required security failure should stop the pipeline:
+
+        Security Failure
+            ↓
+        CI FAIL ❌
+            ↓
+        No GHCR publish
+            ↓
+        No deployment
+
+Successful checks allow the pipeline to continue.
+
+## Step 17 — Test Security Failure
+
+Intentionally create controlled test failures one at a time.
+
+- Examples:
+
+        Semgrep finding
+        Gitleaks secret
+        Dependency vulnerability
+        Trivy vulnerability
+        Checkov finding
+        Kubescape finding
+
+- Verify:
+
+        Finding
+        ↓
+        Security Gate FAIL
+        ↓
+        CI FAIL
+        ↓
+        Image NOT published
+        ↓
+        CD NOT deployed
+
+        Then restore the repository.
+
+## Step 18 — Run Complete CI
+
+- Final successful flow:
+
+        Code Push
+        ↓
+        Tests
+        ↓
+        Semgrep
+        ↓
+        Dependency-Check
+        ↓
+        Gitleaks
+        ↓
+        Kubeconform
+        ↓
+        Checkov
+        ↓
+        Kubescape
+        ↓
+        Trivy
+        ↓
+        Docker Build
+        ↓
+        GHCR Publish
+
+All required gates must pass.
+
+## Step 19 — Verify CD
+
+- After successful CI:
+
+        CI Success
+        ↓
+        CD workflow_run
+        ↓
+        Exact Commit
+        ↓
+        GHCR Authentication
+        ↓
+        Helm
+        ↓
+        Kubernetes
+
+Verify that the existing Phase 8 CD still works and has not been broken by the new security gates.
+
+## Step 20 — Verify Kubernetes
+
+- Check:
+
+        kubectl get pods
+        kubectl get service
+        kubectl rollout status deployment/<deployment-name>
+
+- Verify:
+
+        Pods Running
+        Service available
+        Rollout successful
+        Security configuration active
+        Step 21 — Final Phase 9 Validation
+
+## Phase 9 is complete only when:
+
+        SAST                         ✅
+        SCA                          ✅
+        Secret Scanning              ✅
+        Container Scanning           ✅
+        IaC Scanning                 ✅
+        Kubernetes Scanning          ✅
+        Container Hardening          ✅
+        Kubernetes Hardening         ✅
+        NetworkPolicy                ✅
+        Image Digest                 ✅
+        Security Gates               ✅
+        GHCR Publishing              ✅
+        Helm Deployment              ✅
+        Kubernetes Deployment        ✅
+        Rollout Verification         ✅
+
+## Final Phase 9 Architecture
+
+                        DEVELOPER
+                        │
+                        ▼
+                        Git Push
+                        │
+                        ▼
+                    GitHub Actions
+                        │
+                ┌───────┴────────┐
+                ▼                ▼
+            Tests             Security
+                                Gates
+                                 │
+        ┌────────────────────────┼────────────────────────┐
+        │            │           │          │             │
+        ▼            ▼           ▼          ▼             ▼
+        Semgrep    Dependency   Gitleaks   Checkov      Kubescape
+        SAST       Check          │         IaC          K8s
+                                    │
+                                    ▼
+                                  Trivy
+                             Container Scan
+                                    │
+                                    ▼
+                              Security PASS
+                                    │
+                                    ▼
+                              Docker Build
+                                    │
+                                    ▼
+                                   GHCR
+                                    │
+                                    ▼
+                                   CD
+                                    │
+                                    ▼
+                                  Helm
+                                    │
+                                    ▼
+                                Kubernetes
+                                    │
+                                    ▼
+                              Rollout Verify
+
+---
+
+## Phase 10 — Monitoring & Observability
+
+## Goal
+
+Add monitoring to the existing DevSecOps project using Prometheus + Grafana and monitor both the Flask application and Kubernetes environment.
+
+- Phase 10 Steps
+
+       - Inspect existing project and Kubernetes state
+       - Add Flask /metrics endpoint
+       - Test application metrics
+       - Build and deploy updated Docker image
+       - Configure Prometheus
+       - Verify Prometheus scraping
+       - Add/verify Kubernetes metrics
+       - Install Grafana
+       - Connect Grafana → Prometheus
+       - Create monitoring dashboard
+       - Generate real application traffic
+       - Verify metrics in Prometheus/Grafana
+       - Test monitoring after pod restart/rollout
+       - Verify CI/CD + Phase 9 security remain working
+       - Commit, push, and complete Phase 10 validation
+
+## Architecture
+
+                 GitHub
+                    │
+                    ▼
+              Existing CI/CD
+                    │
+                    ▼
+                  GHCR
+                    │
+                    ▼
+            Kind Kubernetes
+                    │
+             ┌──────┴──────┐
+             │             │
+             ▼             ▼
+        Flask App      K8s Resources
+             │             │
+         /metrics      K8s Metrics
+             │             │
+             └──────┬──────┘
+                    ▼
+               Prometheus
+                    │
+                    ▼
+                 Grafana
+                    │
+                    ▼
+             Monitoring Dashboard
+
+---
+
+## Phase 11 — Reliability & Self-Healing
+
+Phase 11 focuses on testing Kubernetes reliability and recovery on the existing project.
+
+- Steps
+
+   - Verify healthy baseline
+   - Test pod self-healing
+   - Test failed image deployment
+   - Verify ErrImagePull / ImagePullBackOff
+   - Test Helm rollback
+   - Verify application recovery
+   - Test scaling 2 → 0
+   - Verify monitoring detects up = 0
+   - Scale application back 0 → 2
+   - Verify up = 1 and healthy pods
+   - Verify Grafana monitoring
+   - Run final reliability validation
+   - Commit and push Phase 11 changes
+
+## Architecture
+
+                 Kubernetes
+                     │
+              ┌──────┴──────┐
+              │             │
+              ▼             ▼
+        Flask Deployment   Helm
+              │              │
+         ┌────┴────┐         │
+         │         │         │
+       Pod 1      Pod 2 ◄────┘
+         │         │
+         └────┬────┘
+              │
+              ▼
+          Prometheus
+              │
+              ▼
+           Grafana
+
+Failure → Kubernetes detects → Recovery/Rollback → Healthy State
